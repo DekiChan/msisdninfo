@@ -10,7 +10,7 @@ type TransformResponseMsg struct {
 	// network operator name
 	MnoIdentifier string `json:"mno_identifier"`
 	// country calling code (e.g. 386 in case of Slovenian number)
-	CountryCode int `json:"country_code"`
+	CountryCode int32 `json:"country_code"`
 	// ISO 3166-1-alpha-2 formatted
 	CountryIdentifier string `json:"country_identifier"`
 	// number without country and operator codes

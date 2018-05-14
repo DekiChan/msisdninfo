@@ -14,15 +14,18 @@ func main() {
 	router := mux.NewRouter()
 
 	setupRoutes(router)
-	startServer(router, ":8080")
+	startServer(router, 8080)
 }
 
+// Initializes routes
 func setupRoutes(router *mux.Router) {
 	router.HandleFunc("/", controllers.HomeHandler).Methods("GET")
 	router.HandleFunc("/transform", controllers.TransformHandler).Methods("GET")
 }
 
-func startServer(router *mux.Router, host string) {
-	fmt.Println(fmt.Sprintf("starting to listen at localhost%s", host))
-	http.ListenAndServe(host, router)
+func startServer(router *mux.Router, port int) {
+	portStr := fmt.Sprintf(":%d", port)
+
+	fmt.Println(fmt.Sprintf("Listening on http://localhost:%d", port))
+	http.ListenAndServe(portStr, router)
 }
