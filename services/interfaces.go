@@ -9,5 +9,5 @@ type IMsisdnService interface {
 }
 
 type IPhonenumberToCarrierMapper interface {
-	GetCarrier(countryCode int, msisdn string) types.CarrierInfo
+	GetCarrier(countryCode int, msisdn string) (bool, types.CarrierInfo)
 }

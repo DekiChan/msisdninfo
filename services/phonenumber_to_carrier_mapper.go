@@ -28,11 +28,14 @@ func CreatePhonenumberToCarrierMapper() IPhonenumberToCarrierMapper {
 	}
 }
 
-func (mapper *PhonenumberToCarrierMapper) GetCarrier(countryCode int, msisdn string) types.CarrierInfo {
-	mapper.CountryCode = countryCode
-	mapper.Msisdn = msisdn
+func (mapper *PhonenumberToCarrierMapper) GetCarrier(countryCode int, msisdn string) (bool, types.CarrierInfo) {
+	carrierInfo := mapper.getCarrierInfo(countryCode, msisdn)
 
-	return mapper.getCarrierInfo(countryCode, msisdn)
+	if carrierInfo.Name == "" {
+		return false, carrierInfo
+	}
+
+	return true, carrierInfo
 }
 
 func (mapper *PhonenumberToCarrierMapper) getCarrierInfo(countryCode int, msisdn string) types.CarrierInfo {

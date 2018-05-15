@@ -68,9 +68,13 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 	fmt.Println(fmt.Sprintf("Local msisdn unpref: %s", msisdnService.msisdn))
 
 	cc := msisdnService.phoneNumber.GetCountryCode()
-	msisdnService.carrierInfo = msisdnService.carrierMapper.GetCarrier(int(cc), msisdnUnprefixed)
-	fmt.Println(msisdnService.carrierInfo)
+	carrierOk, carrierInfo := msisdnService.carrierMapper.GetCarrier(int(cc), msisdnUnprefixed)
 
+	if !carrierOk {
+		return types.TransformResponseMsg{}, MsisdnError{Message: "Oops, invalid msisdn: no matching network operator found"}
+	}
+
+	msisdnService.carrierInfo = carrierInfo
 	return msisdnService.toResponseMsg(), nil
 }
 
