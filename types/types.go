@@ -1,5 +1,9 @@
 package types
 
+/* -------------------------------------------------------------------------- */
+/* -- ERROR TYPES ----------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
 type HomeResponseMsg struct {
 	// json:"name" tags tells how to name the prop in json string
 	Status  int    `json:"name"`
@@ -19,4 +23,13 @@ type TransformResponseMsg struct {
 
 type ErrorResponseMsg struct {
 	Message string `json:"message"`
+}
+
+/* -------------------------------------------------------------------------- */
+/* -- CARRIER TYPES --------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+type CarrierInfo struct {
+	Name   string
+	Prefix string
 }

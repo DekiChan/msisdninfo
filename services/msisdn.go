@@ -9,8 +9,10 @@ import (
 )
 
 type MsisdnService struct {
-	msisdn      string
-	phoneNumber *phonenumbers.PhoneNumber
+	msisdn        string
+	phoneNumber   *phonenumbers.PhoneNumber
+	carrierMapper IPhonenumberToCarrierMapper
+	carrierInfo   types.CarrierInfo
 }
 
 type MsisdnError struct {
@@ -38,7 +40,11 @@ func (err MsisdnError) ToResponseError() types.ErrorResponseMsg {
 }
 
 func CreateMsisdnService() IMsisdnService {
-	return &MsisdnService{}
+	mapper := CreatePhonenumberToCarrierMapper()
+
+	return &MsisdnService{
+		carrierMapper: mapper,
+	}
 }
 
 func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformResponseMsg, error) {
@@ -48,6 +54,7 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 	}
 
 	msisdnPrefixed := toZeroPrefixed(msisdn)
+	msisdnUnprefixed := toUnprefixed(msisdn)
 	phoneNumber, err := phonenumbers.Parse(msisdnPrefixed, "SI")
 
 	if err != nil {
@@ -59,6 +66,10 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 	msisdnService.phoneNumber = phoneNumber
 	msisdnService.msisdn = msisdnPrefixed
 	fmt.Println(fmt.Sprintf("Local msisdn unpref: %s", msisdnService.msisdn))
+
+	cc := msisdnService.phoneNumber.GetCountryCode()
+	msisdnService.carrierInfo = msisdnService.carrierMapper.GetCarrier(int(cc), msisdnUnprefixed)
+	fmt.Println(msisdnService.carrierInfo)
 
 	return msisdnService.toResponseMsg(), nil
 }
@@ -78,6 +89,20 @@ func toZeroPrefixed(msisdn string) string {
 	}
 
 	return prefixed
+}
+
+func toUnprefixed(msisdn string) string {
+	var unprefixed string
+
+	if msisdn[0] == '+' {
+		unprefixed = trimLeftChars(msisdn, 1)
+	} else if msisdn[:2] == "00" {
+		unprefixed = trimLeftChars(msisdn, 2)
+	} else {
+		unprefixed = msisdn
+	}
+
+	return unprefixed
 }
 
 func trimLeftChars(s string, n int) string {
@@ -101,7 +126,7 @@ func (msisdnService *MsisdnService) toResponseMsg() types.TransformResponseMsg {
 	return types.TransformResponseMsg{
 		CountryCode:       countryCode,
 		CountryIdentifier: countryIdentifier,
-		MnoIdentifier:     "mno",
+		MnoIdentifier:     msisdnService.carrierInfo.Name,
 		SubscriberNumber:  msisdnService.phoneNumber.GetPreferredDomesticCarrierCode(), //"subs",
 	}
 }
