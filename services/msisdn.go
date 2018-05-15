@@ -10,6 +10,7 @@ import (
 
 type MsisdnService struct {
 	msisdn        string
+	msisdnUnpref  string
 	phoneNumber   *phonenumbers.PhoneNumber
 	carrierMapper IPhonenumberToCarrierMapper
 	carrierInfo   types.CarrierInfo
@@ -65,6 +66,7 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 
 	msisdnService.phoneNumber = phoneNumber
 	msisdnService.msisdn = msisdnPrefixed
+	msisdnService.msisdnUnpref = msisdnUnprefixed
 	fmt.Println(fmt.Sprintf("Local msisdn unpref: %s", msisdnService.msisdn))
 
 	cc := msisdnService.phoneNumber.GetCountryCode()
@@ -126,12 +128,13 @@ func (msisdnService *MsisdnService) toResponseMsg() types.TransformResponseMsg {
 	// map value is an array since country code could be the same for multiple
 	// regions. We take the first one since it's usually a (larger) country
 	countryIdentifier := phonenumbers.CountryCodeToRegion[int(countryCode)][0]
+	subscriberNumber := getSubscriberNumber(msisdnService.carrierInfo.Prefix, msisdnService.msisdnUnpref)
 
 	return types.TransformResponseMsg{
 		CountryCode:       countryCode,
 		CountryIdentifier: countryIdentifier,
 		MnoIdentifier:     msisdnService.carrierInfo.Name,
-		SubscriberNumber:  msisdnService.phoneNumber.GetPreferredDomesticCarrierCode(), //"subs",
+		SubscriberNumber:  subscriberNumber,
 	}
 }
 
@@ -139,4 +142,12 @@ func isMsisdnValid(msisdn string) bool {
 	matched, _ := regexp.MatchString(MSISDN_REGEX, msisdn)
 
 	return matched
+}
+
+// Get number without country and carrier codes
+// Slovenian example:
+// msisdn = 38640123456, subsciberNumber = 123456
+func getSubscriberNumber(prefix string, msisdn string) string {
+	prefixIdx := len(prefix)
+	return msisdn[prefixIdx:]
 }
