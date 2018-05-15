@@ -5,5 +5,5 @@ import (
 )
 
 type IMsisdnService interface {
-	Parse(msisdn string) types.TransformResponseMsg
+	Parse(msisdn string) (types.TransformResponseMsg, error)
 }
