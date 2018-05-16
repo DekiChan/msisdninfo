@@ -20,28 +20,8 @@ var invalidMapperMsisdns = []string{
 	"38540123456",   // different country
 }
 
-// We need this because working directory when running tests is
-// msisdninfo/services, while data dir is msisdninfo/carriers
-// Default create uses data dir "./carriers"
-func createTestMapper() *PhonenumberToCarrierMapper {
-	return &PhonenumberToCarrierMapper{
-		carrierDataDir: "../carriers/",
-	}
-}
-
-// see comment at createTestMapper()
-// also cover default service factory function
-func TestGetCarrierWithInvalidDataDir(t *testing.T) {
-	mapper := CreatePhonenumberToCarrierMapper()
-	hasInfo, info := mapper.GetCarrier(386, "38640123456")
-
-	if hasInfo || info.Name != "" {
-		t.Error("CreatePhonenumberToCarrierMapper should have wrong data dir and return empty result")
-	}
-}
-
 func TestGetCarrierWithInvalidMsisdns(t *testing.T) {
-	mapper := createTestMapper()
+	mapper := CreatePhonenumberToCarrierMapper()
 
 	for _, msisdn := range invalidMapperMsisdns {
 		hasInfo, info := mapper.GetCarrier(386, msisdn)
@@ -56,7 +36,7 @@ func TestGetCarrierWithInvalidMsisdns(t *testing.T) {
 }
 
 func TestGetCarrierWithValidMsisdns(t *testing.T) {
-	mapper := createTestMapper()
+	mapper := CreatePhonenumberToCarrierMapper()
 
 	for _, tt := range validMapperMsisdns {
 		hasInfo, info := mapper.GetCarrier(386, tt.msisdn)

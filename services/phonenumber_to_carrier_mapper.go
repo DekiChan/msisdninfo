@@ -1,9 +1,7 @@
 package services
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -16,7 +14,7 @@ import (
 const DATA_LINE_REGEX = `^\d+\|.+$`
 
 // directory containing carrier data files
-const CARRIER_DATA_DIR = "./carriers/"
+const CARRIER_DATA_DIR = "carriers"
 
 type PhonenumberToCarrierMapper struct {
 	CountryCode    int
@@ -37,20 +35,15 @@ func CreatePhonenumberToCarrierMapper() IPhonenumberToCarrierMapper {
 // and tries to find carrier data based on matching prefix in file and given msisdn
 func (mapper *PhonenumberToCarrierMapper) GetCarrier(countryCode int, msisdn string) (hasInfo bool, carrierInfo types.CarrierInfo) {
 	// open carrier data file & split by lines
-	filePath := fmt.Sprintf("%s/%d.txt", mapper.carrierDataDir, countryCode)
-	inFile, err := os.Open(filePath)
+	data, errAsset := Asset(fmt.Sprintf("%s/%d.txt", mapper.carrierDataDir, countryCode))
 
-	if err != nil {
+	if errAsset != nil {
 		return false, types.CarrierInfo{}
 	}
 
-	defer inFile.Close()
+	dataStr := strings.Split(string(data[:]), "\n")
 
-	scanner := bufio.NewScanner(inFile)
-	scanner.Split(bufio.ScanLines)
-
-	for scanner.Scan() {
-		line := scanner.Text()
+	for _, line := range dataStr {
 		if lineHasData(line) {
 			match, info := processLine(line, msisdn)
 			if match {

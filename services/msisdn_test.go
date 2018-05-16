@@ -7,18 +7,6 @@ import (
 	"github.com/dekichan/msisdninfo/types"
 )
 
-// !!!!! SEE ALSO FILE msisd_test.go where some data is defined
-
-// Needed because mapper otherwise gets wrong carriers data dir
-// See comment at createTestMapper()
-func createTestMsisdnService() IMsisdnService {
-	mapper := createTestMapper()
-
-	return &MsisdnService{
-		carrierMapper: mapper,
-	}
-}
-
 func TestCreateRegularMsisdnService(t *testing.T) {
 	createdService := CreateMsisdnService()
 	service := &MsisdnService{}
@@ -29,7 +17,7 @@ func TestCreateRegularMsisdnService(t *testing.T) {
 }
 
 func TestParseInvalidMsisdns(t *testing.T) {
-	msisdnService := createTestMsisdnService()
+	msisdnService := CreateMsisdnService()
 
 	for _, msisdn := range invalidMsisdns {
 		resp, err := msisdnService.Parse(msisdn)
@@ -42,7 +30,7 @@ func TestParseInvalidMsisdns(t *testing.T) {
 }
 
 func TestParseValidMsisdns(t *testing.T) {
-	msisdnService := createTestMsisdnService()
+	msisdnService := CreateMsisdnService()
 
 	for _, msisdn := range validSloA1Msisdns {
 		resp, err := msisdnService.Parse(msisdn)
