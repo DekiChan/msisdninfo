@@ -7,29 +7,7 @@ import (
 	"github.com/dekichan/msisdninfo/types"
 )
 
-var invalidMsisdns = []string{
-	"-xxx3443553465",   // invalid characters
-	"123456",           // too short
-	"1234567890123456", // too long
-	"99940123456",      // inexistent country code
-	"38629123456",      // inexistent MNO
-	"+38642123456",     // inexistent MNO
-}
-
-// If you're changing this you might need to change validSloA1MsisdnResult too
-var validSloA1Msisdns = []string{
-	"38640123456",
-	"+38640123456",
-	"0038640123456",
-}
-
-// If you're changing this you might need to change validSloA1Msisdns too
-var validSloA1MsisdnResult = types.TransformResponseMsg{
-	CountryCode:       386,
-	CountryIdentifier: "SI",
-	MnoIdentifier:     "A1",
-	SubscriberNumber:  "123456",
-}
+// !!!!! SEE ALSO FILE msisd_test.go where some data is defined
 
 // Needed because mapper otherwise gets wrong carriers data dir
 // See comment at createTestMapper()
