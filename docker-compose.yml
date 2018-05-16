@@ -1,0 +1,10 @@
+version: '3'
+services:
+  app:
+    build: .
+    command: msisdninfo
+    volumes:
+      - .:/go/src/github.com/dekichan/msisdninfo
+    ports:
+      - "8080:8080"
+      
