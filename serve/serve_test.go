@@ -42,7 +42,21 @@ func TestInvalidMsisdnResponses(t *testing.T) {
 	testMsisdns := services.GetTestMsisdns()
 
 	for _, msisdn := range testMsisdns.Invalid {
-		_, res := makeRequest(fmt.Sprintf("/transfrom?msisdn=%s", msisdn))
+		_, res := makeRequest(fmt.Sprintf("/transform?msisdn=%s", msisdn))
+
+		codeOk, _ := responseHas(res, http.StatusBadRequest, "")
+
+		if !codeOk {
+			t.Error("Responses to requests with invalid msisdns should have status code 400")
+		}
+	}
+}
+
+func TestValidMsisdnResponses(t *testing.T) {
+	testMsisdns := services.GetTestMsisdns()
+
+	for _, msisdn := range testMsisdns.ValidSloA1 {
+		_, res := makeRequest(fmt.Sprintf("/transform?msisdn=%s", msisdn))
 
 		codeOk, _ := responseHas(res, http.StatusBadRequest, "")
 
@@ -58,24 +72,6 @@ func responseHas(res *http.Response, code int, body string) (codeOk bool, bodyOk
 	bodyBytes, _ := ioutil.ReadAll(res.Body)
 	bodyString := strings.Trim(string(bodyBytes), "\r\n")
 	bodyOk = bodyString == body
+
 	return
 }
-
-// func TestValidMsisdnResponses() {
-
-// }
-
-// /transform
-// {
-// 	"message": "Error: no msisdn provided"
-// 	}
-
-// // /trandform +38...
-// {
-// 	"Message": "Oops, invalid msisdn."
-// 	}
-
-// 38642737152
-// {
-// 	"Message": "Oops, invalid msisdn: no matching network operator found"
-// 	}

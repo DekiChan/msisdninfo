@@ -22,6 +22,7 @@ func TransformHandler(writer http.ResponseWriter, request *http.Request) {
 			json.NewEncoder(writer).Encode(resp)
 			return
 		} else {
+			writer.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(writer).Encode(err)
 			return
 		}
