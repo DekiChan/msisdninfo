@@ -19,7 +19,6 @@ func main() {
 
 // Initializes routes
 func setupRoutes(router *mux.Router) {
-	router.HandleFunc("/", controllers.HomeHandler).Methods("GET")
 	router.HandleFunc("/transform", controllers.TransformHandler).Methods("GET")
 }
 
