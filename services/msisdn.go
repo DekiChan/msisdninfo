@@ -8,6 +8,12 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
+// first crude validation rule for a phone number
+// will match 7 to 15 digits, optionally prefixed with '+' or '00'
+const MSISDN_REGEX = `^(\+|00)?[0-9]{7,15}$`
+
+// This service parses msisdn as provided by the user
+// It implements IMsisdnService interface
 type MsisdnService struct {
 	msisdn        string
 	msisdnUnpref  string
@@ -21,9 +27,7 @@ type MsisdnError struct {
 	err     error
 }
 
-// will match 7 to 15 digits, optionally prefixed with '+' or '00'
-const MSISDN_REGEX = `^(\+|00)?[0-9]{7,15}$`
-
+// Implement error interface
 func (err MsisdnError) Error() string {
 	var msg string
 
@@ -36,10 +40,8 @@ func (err MsisdnError) Error() string {
 	return msg
 }
 
-func (err MsisdnError) ToResponseError() types.ErrorResponseMsg {
-	return types.ErrorResponseMsg{err.err.Error()}
-}
-
+// Returns an instance of MsisdnService that
+// implements IMsisdnService interface
 func CreateMsisdnService() IMsisdnService {
 	mapper := CreatePhonenumberToCarrierMapper()
 
@@ -48,7 +50,10 @@ func CreateMsisdnService() IMsisdnService {
 	}
 }
 
-func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformResponseMsg, error) {
+// Parse msisdn as provided by the user
+// If msisdn is valid, parsed object will contain filled types.TransofrmResponseMsg and err will be null
+// If msisdn is invalid, parsed will contain empty types.TransfromResponseMsg and err will be an instance of MsisdnError
+func (msisdnService *MsisdnService) Parse(msisdn string) (parsed types.TransformResponseMsg, err error) {
 	if !isMsisdnValid(msisdn) {
 		// throw some error
 		return types.TransformResponseMsg{}, MsisdnError{Message: "Oops, invalid msisdn."}
@@ -67,7 +72,6 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 	msisdnService.phoneNumber = phoneNumber
 	msisdnService.msisdn = msisdnPrefixed
 	msisdnService.msisdnUnpref = msisdnUnprefixed
-	fmt.Println(fmt.Sprintf("Local msisdn unpref: %s", msisdnService.msisdn))
 
 	cc := msisdnService.phoneNumber.GetCountryCode()
 	carrierOk, carrierInfo := msisdnService.carrierMapper.GetCarrier(int(cc), msisdnUnprefixed)
@@ -83,6 +87,7 @@ func (msisdnService *MsisdnService) Parse(msisdn string) (types.TransformRespons
 // Returns msisdn with '00' prefix
 // phonenumbers.Parse() doesn't parse country code if there is no
 // prefix - in that case it uses default locale provided
+// Ie, for slovenian number: 0038640123456
 func toZeroPrefixed(msisdn string) string {
 	var prefixed string
 
@@ -97,6 +102,8 @@ func toZeroPrefixed(msisdn string) string {
 	return prefixed
 }
 
+// Returns msisdn without '00' or '+' prefixes
+// Ie, for slovenian number: 38640123456
 func toUnprefixed(msisdn string) string {
 	var unprefixed string
 
@@ -111,19 +118,15 @@ func toUnprefixed(msisdn string) string {
 	return unprefixed
 }
 
+// Trims n chars from the start of string s
+// ie trimLeftChars("1234", 2) == "34" is true
 func trimLeftChars(s string, n int) string {
-	c := 0
-	for i := range s {
-		if c >= n {
-			return s[i:]
-		}
-		c++
-	}
-	return s[:0]
+	return s[n:]
 }
 
+// Returns fields types.TransformResponseMsg object
+// types.TransformResponseMsg has the data as needed for final response
 func (msisdnService *MsisdnService) toResponseMsg() types.TransformResponseMsg {
-	fmt.Println(msisdnService.phoneNumber)
 	countryCode := msisdnService.phoneNumber.GetCountryCode()
 	// map value is an array since country code could be the same for multiple
 	// regions. We take the first one since it's usually a (larger) country
@@ -138,6 +141,7 @@ func (msisdnService *MsisdnService) toResponseMsg() types.TransformResponseMsg {
 	}
 }
 
+// Makes basic msisdn regex validation as defined in MSISDN_REGEX
 func isMsisdnValid(msisdn string) bool {
 	matched, _ := regexp.MatchString(MSISDN_REGEX, msisdn)
 
