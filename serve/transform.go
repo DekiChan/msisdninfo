@@ -28,6 +28,7 @@ func TransformHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
+	writer.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(writer).Encode(types.ErrorResponseMsg{
 		Message: "Error: no msisdn provided",
 	})

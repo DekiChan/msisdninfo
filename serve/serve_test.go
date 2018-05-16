@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -38,6 +39,18 @@ func TestUnexistentRoute(t *testing.T) {
 	}
 }
 
+func TestWithoutMsisdn(t *testing.T) {
+	_, res := makeRequest("/transform")
+
+	codeOk, bodyOk := responseHas(res, http.StatusBadRequest, `{"message":"Error: no msisdn provided"}`)
+
+	if !codeOk {
+		t.Error("Request without msisdn should have code 400")
+	} else if !bodyOk {
+		t.Error("Request without msisdn has wrong body")
+	}
+}
+
 func TestInvalidMsisdnResponses(t *testing.T) {
 	testMsisdns := services.GetTestMsisdns()
 
@@ -56,12 +69,14 @@ func TestValidMsisdnResponses(t *testing.T) {
 	testMsisdns := services.GetTestMsisdns()
 
 	for _, msisdn := range testMsisdns.ValidSloA1 {
-		_, res := makeRequest(fmt.Sprintf("/transform?msisdn=%s", msisdn))
+		_, res := makeRequest(fmt.Sprintf("/transform?msisdn=%s", url.QueryEscape(msisdn)))
 
-		codeOk, _ := responseHas(res, http.StatusBadRequest, "")
+		codeOk, bodyOk := responseHas(res, http.StatusOK, `{"mno_identifier":"A1","country_code":386,"country_identifier":"SI","subscriber_number":"123456"}`)
 
 		if !codeOk {
-			t.Error("Responses to requests with invalid msisdns should have status code 400")
+			t.Error("Responses to requests with valid msisdns should have status code 200")
+		} else if !bodyOk {
+			t.Error("Response to request with valid A1 msisdn got wrong result")
 		}
 	}
 }
